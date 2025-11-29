@@ -23,3 +23,12 @@ app.use((err, req, res, next) => {
     if (err) return res.status(404).send({ error: "Image not found" });
     next();
 });
+
+let db;
+
+MongoClient.connect('mongodb+srv://ss4653:suraj2005@cluster0.dtdvz.mongodb.net')
+    .then(client => {
+        db = client.db('afterSchoolLessons');
+        console.log("Connected to MongoDB");
+    })
+    .catch(err => console.error(err));
