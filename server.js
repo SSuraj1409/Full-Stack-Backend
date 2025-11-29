@@ -47,3 +47,61 @@ app.get('/lessons', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+app.post('/orders', async (req, res) => {
+    try {
+        const { name, phone, lessonIDs } = req.body;
+
+        const quantityMap = {};
+        lessonIDs.forEach(id => {
+            quantityMap[id] = (quantityMap[id] || 0) + 1;
+        }); 
+
+        const items = [];
+        let totalPrice = 0;
+
+        for (const lessonId of Object.keys(quantityMap)) {
+            const lesson = await db.collection('lessons').findOne({ _id: new ObjectId(lessonId) });
+
+            if (!lesson) continue;
+
+            const qty = quantityMap[lessonId];
+            const priceForQty = lesson.price * qty;
+
+            items.push({
+                lessonId,
+                name: lesson.subject,
+                price: lesson.price,
+                quantity: qty   
+            });
+
+            totalPrice += priceForQty;
+
+            await db.collection('lessons').updateOne(
+                { _id: new ObjectId(lessonId) },
+                { $inc: { spaces: -qty } }
+            );
+        }
+
+        const order = {
+            customer: { name, phone },
+            items,
+            totalPrice,
+            date: new Date()
+        };
+
+        await db.collection('orders').insertOne(order);
+
+        res.json({ message: "Order saved successfully", order });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+
+        
+
+
+        
