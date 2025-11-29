@@ -32,3 +32,18 @@ MongoClient.connect('mongodb+srv://ss4653:suraj2005@cluster0.dtdvz.mongodb.net')
         console.log("Connected to MongoDB");
     })
     .catch(err => console.error(err));
+
+
+app.get('/', (req, res) => {
+    res.send("After School Lessons API is running");
+});
+
+
+app.get('/lessons', async (req, res) => {
+    try {
+        const lessons = await db.collection('lessons').find({}).toArray();
+        res.json(lessons);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
