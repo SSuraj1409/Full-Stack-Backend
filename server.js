@@ -100,7 +100,17 @@ app.post('/orders', async (req, res) => {
 });
 
 
-
+app.put('/lessons/:id', async (req, res) => {
+    try {
+        await db.collection('lessons').updateOne(
+            { _id: new ObjectId(req.params.id) },
+            { $set: req.body }
+        );
+        res.json({ message: "Lesson updated" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
         
 
 
