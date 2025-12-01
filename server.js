@@ -111,6 +111,32 @@ app.put('/lessons/:id', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+app.get('/search', async (req, res) => {
+    try {
+        let q = req.query.query;
+        if (!q?.trim()) return res.json([]);
+
+        q = q.trim();
+        const regex = new RegExp(q, "i");
+        const numQuery = Number(q);
+
+        const results = await db.collection('lessons').find({
+            $or: [
+                { subject: { $regex: regex } },
+                { location: { $regex: regex } },
+                { price: isNaN(numQuery) ? -1 : numQuery },
+                { spaces: isNaN(numQuery) ? -1 : numQuery },
+                { id: isNaN(numQuery) ? -1 : numQuery }
+            ]
+        }).toArray();
+
+        res.json(results);
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
         
 
 
