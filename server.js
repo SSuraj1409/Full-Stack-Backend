@@ -68,16 +68,17 @@ app.post('/orders', async (req, res) => {
 
         const items = [];
         let totalPrice = 0;
-        
+
         // Loop through each lesson ID and update database
         for (const lessonId of Object.keys(quantityMap)) {
             const lesson = await db.collection('lessons').findOne({ _id: new ObjectId(lessonId) });
 
-            if (!lesson) continue;
+            if (!lesson) continue;  // Skip if lesson does not exist
 
             const qty = quantityMap[lessonId];
             const priceForQty = lesson.price * qty;
 
+            // Add lesson info to order summary
             items.push({
                 lessonId,
                 name: lesson.subject,
@@ -87,12 +88,14 @@ app.post('/orders', async (req, res) => {
 
             totalPrice += priceForQty;
 
+            // Reduce lesson spaces in database
             await db.collection('lessons').updateOne(
                 { _id: new ObjectId(lessonId) },
                 { $inc: { spaces: -qty } }
             );
         }
 
+         // Build order object
         const order = {
             customer: { name, phone },
             items,
@@ -100,6 +103,7 @@ app.post('/orders', async (req, res) => {
             date: new Date()
         };
 
+        // Save order in DB
         await db.collection('orders').insertOne(order);
 
         res.json({ message: "Order saved successfully", order });
@@ -109,7 +113,7 @@ app.post('/orders', async (req, res) => {
     }
 });
 
-
+// Update a lesson (PUT)
 app.put('/lessons/:id', async (req, res) => {
     try {
         await db.collection('lessons').updateOne(
@@ -122,9 +126,12 @@ app.put('/lessons/:id', async (req, res) => {
     }
 });
 
+//Search lessons matches subject, location, price, spaces, and id
 app.get('/search', async (req, res) => {
     try {
         let q = req.query.query;
+
+        // If search box empty → return empty array
         if (!q?.trim()) return res.json([]);
 
         q = q.trim();
@@ -148,6 +155,7 @@ app.get('/search', async (req, res) => {
     }
 });
 
+//start server
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
         
