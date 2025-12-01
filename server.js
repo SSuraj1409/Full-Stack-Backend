@@ -137,6 +137,9 @@ app.get('/search', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+const PORT = 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
         
 
 
