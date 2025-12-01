@@ -3,13 +3,16 @@ const app = express();
 const path = require('path');
 const { MongoClient, ObjectId } = require('mongodb');
 
+//Middleware: log every incoming request
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
     next();
 });
 
+//Allow JSON in request body
 app.use(express.json());
 
+//CORS (Cross-Origin Resource Sharing) headers - allows the frontend to make requests to the backend
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader("Access-Control-Allow-Credentials", "true");
