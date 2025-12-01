@@ -21,7 +21,10 @@ app.use((req, res, next) => {
     next();
 });
 
+//Serve images folder (http://localhost:3000/images/xxx.png)
 app.use("/images", express.static(path.join(__dirname, "images"), { fallthrough: false }));
+
+// if image not found
 app.use((err, req, res, next) => {
     if (err) return res.status(404).send({ error: "Image not found" });
     next();
@@ -29,6 +32,7 @@ app.use((err, req, res, next) => {
 
 let db;
 
+//Connect to MongoDB Atlas 
 MongoClient.connect('mongodb+srv://ss4653:suraj2005@cluster0.dtdvz.mongodb.net')
     .then(client => {
         db = client.db('afterSchoolLessons');
@@ -36,12 +40,12 @@ MongoClient.connect('mongodb+srv://ss4653:suraj2005@cluster0.dtdvz.mongodb.net')
     })
     .catch(err => console.error(err));
 
-
+// Root route to confirm server is active
 app.get('/', (req, res) => {
     res.send("After School Lessons API is running");
 });
 
-
+//GET all lessons-called by frontend to load list of lessons
 app.get('/lessons', async (req, res) => {
     try {
         const lessons = await db.collection('lessons').find({}).toArray();
@@ -51,10 +55,12 @@ app.get('/lessons', async (req, res) => {
     }
 });
 
+// POST /orders- Saves an order & reduces available lesson spaces
 app.post('/orders', async (req, res) => {
     try {
         const { name, phone, lessonIDs } = req.body;
 
+        // Count how many of each lesson was ordered
         const quantityMap = {};
         lessonIDs.forEach(id => {
             quantityMap[id] = (quantityMap[id] || 0) + 1;
@@ -62,7 +68,8 @@ app.post('/orders', async (req, res) => {
 
         const items = [];
         let totalPrice = 0;
-
+        
+        // Loop through each lesson ID and update database
         for (const lessonId of Object.keys(quantityMap)) {
             const lesson = await db.collection('lessons').findOne({ _id: new ObjectId(lessonId) });
 
